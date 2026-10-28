@@ -1,0 +1,41 @@
+name: Update contribution snake
+
+on:
+  schedule:
+    # 08:17 Asia/Shanghai daily (00:17 UTC).
+    - cron: '17 0 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/snake.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: contribution-snake
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Generate light, dark, and GIF animations
+        uses: Platane/snk@d8f6715049803e982ee5ff501b6b9b7d5deeb09b # v3
+        with:
+          github_user_name: ${{ github.repository_owner }}
+          outputs: |
+            dist/github-contribution-grid-snake.svg
+            dist/github-contribution-grid-snake-dark.svg?palette=github-dark
+            dist/github-contribution-grid-snake.gif?color_snake=%237c3aed&color_dots=%23ebedf0,%239be9a8,%2340c463,%2330a14e,%23216e39&color_background=%23ffffff
+
+      - name: Publish animations to output branch
+        uses: crazy-max/ghaction-github-pages@df5cc2bfa78282ded844b354faee141f06b41865 # v4
+        with:
+          target_branch: output
+          build_dir: dist
+          commit_message: 'chore: update contribution snake'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
